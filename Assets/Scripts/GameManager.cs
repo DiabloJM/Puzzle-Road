@@ -6,60 +6,67 @@ using UnityEngine.UI;
 public class GameManager : MonoBehaviour
 {
     //Variables publicas
-    [HideInInspector]
-    public static GameManager instance; //Unica instancia de este script
-
-    [Header("Niveles")]
-    public int playableLevels = PlayerPrefs.GetInt("playableLevels"); //Cantidad de niveles desbloqueados
+    [Header("Niveles y Textos")]
     public GameObject[] levels;     //Todos los niveles
 
-    [Header("Sprites de Estrellas")]
-    public Sprite starGray;
+    [Header("Sprites de Caja")]
+    public Sprite boxDefault;
+    public Sprite boxLock;
+
+    [Header("Sprite de Estrella Dorada")]
     public Sprite starGolden;
 
-    [Header("Sprite de Bloque de Nivel")]
-    public Sprite defaultUI;
-
-    [Header("Volumen de sonidos")]
-    [SerializeField] Slider volumeSlider;
+    //Variables privadas
+    private int playableLevels; //Cantidad de niveles desbloqueados
+    private int levelStars;
+    private int actualLevel;
 
     private void Awake()
     {
-        gameObject.GetComponent<AudioSource>().volume = PlayerPrefs.GetFloat("musicVolume");
-        gameObject.GetComponent<AudioSource>().Play();
+        playableLevels = PlayerPrefs.GetInt("playableLevels");
     }
 
-    private void Update()
+    private void Start()
     {
-        PlayerPrefs.SetFloat("musicVolume", volumeSlider.value);
-        gameObject.GetComponent<AudioSource>().volume = PlayerPrefs.GetFloat("musicVolume");
+        InitializeLevelsCanvas();
     }
 
+    //Funcion para inicializar el canvas de niveles
     private void InitializeLevelsCanvas()
     {
+        for(int i = 0; i < playableLevels; i++)
+        {
+            levelStars = PlayerPrefs.GetInt("levelStars" + i);
+            actualLevel = i + 1;
 
+            //Quitar la imagen de candado y activar boton
+            levels[i].GetComponent<Image>().sprite = boxDefault;
+            levels[i].GetComponent<Button>().enabled = true;
+            levels[i].transform.GetChild(0).GetComponent<Text>().text = actualLevel.ToString();
+
+            //Actualizar las estrellas del nivel
+            if (levelStars > 0)
+            {
+                for (int j = 1; j <= levelStars; j++)
+                {
+                    levels[i].transform.GetChild(j).gameObject.GetComponent<Image>().sprite = starGolden;
+                }
+            }
+        }
     }
 
-    //Funcion para cuando se termina un nivel
-    public void FinishLevel(int level, int stars)
+    //Funcion para resetear TODOS los valores guardados en PlayerPrefs
+    /*
+    private void ResetPlayerPrefs()
     {
-        if(stars == 1)
+        for(int i = 0; i < 6; i++)
         {
-            levels[level - 1].transform.GetChild(1).GetComponent<Image>().sprite = starGolden;
-        }
-        if(stars == 2)
-        {
-            levels[level - 1].transform.GetChild(1).GetComponent<Image>().sprite = starGolden;
-            levels[level - 1].transform.GetChild(2).GetComponent<Image>().sprite = starGolden;
-        }
-        if(stars == 3)
-        {
-            levels[level - 1].transform.GetChild(1).GetComponent<Image>().sprite = starGolden;
-            levels[level - 1].transform.GetChild(2).GetComponent<Image>().sprite = starGolden;
-            levels[level - 1].transform.GetChild(3).GetComponent<Image>().sprite = starGolden;
+            PlayerPrefs.SetInt("levelStars" + i, 0);
         }
 
-        levels[level].GetComponent<Image>().sprite = defaultUI;
-        levels[level].GetComponent<Button>().enabled = true;
+        PlayerPrefs.SetInt("playableLevels", 1);
+        PlayerPrefs.SetFloat("musicVolume", 0.8f);
+        PlayerPrefs.SetFloat("sfxVolume", 0.5f);
     }
+    */
 }
